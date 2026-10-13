@@ -5,438 +5,267 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SSVR - VR Soccer</title>
-
-  <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
-
+  <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
   <style>
     body { margin: 0; font-family: Arial, sans-serif; }
     #help {
       position: fixed; top: 10px; left: 10px; z-index: 10;
-      background: #10251ee8; color: white;
-      padding: 12px 15px; border-radius: 10px;
-      max-width: 300px; font-size: 14px;
+      color: white; background: #102b22dd; padding: 10px;
+      border-radius: 8px; max-width: 270px;
     }
-    #help button {
-      padding: 9px 14px; margin-top: 8px;
-      border: 0; border-radius: 6px; font-weight: bold;
-    }
-    body:has(a-scene.vr-mode) #help { display: none; }
   </style>
 </head>
-
 <body>
-  <div id="help">
-    <b>SSVR — VR SOCCER</b>
-    <p>Put on your Quest 3 and enter VR.</p>
-    <p>Left stick: move. Right stick: turn.</p>
-    <p>Move your controllers to control your feet and kick the ball.</p>
-    <button onclick="document.querySelector('a-scene').enterVR()">
-      ENTER VR
-    </button>
-    <p id="status">Waiting for VR controllers...</p>
-  </div>
+<div id="help">
+  <b>SSVR — Soccer</b><br>
+  Put each controller near the top of its leg.<br>
+  Swing a foot into the ball to kick it.<br>
+  Use the left thumbstick to move.
+</div>
 
-  <a-scene
-    background="color: #87CEEB"
-    renderer="antialias: true; colorManagement: true"
-    webxr="optionalFeatures: local-floor, bounded-floor"
-    ssvr-game
-  >
-    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
-    <a-entity
-      light="type: directional; intensity: 1"
-      position="-4 8 3"
-    ></a-entity>
+<a-scene
+  id="scene"
+  background="color: #87ceeb"
+  renderer="antialias: true"
+  vr-mode-ui="enabled: true">
 
-    <!-- SOCCER FIELD -->
-    <a-plane
-      rotation="-90 0 0"
-      width="24" height="36"
-      color="#278b40"
-    ></a-plane>
+  <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+  <a-entity light="type: directional; intensity: 1"
+            position="-3 8 4"></a-entity>
 
-    <a-box position="0 0.025 0"
-      width="23.8" height="0.03" depth="0.08"
-      color="white"></a-box>
+  <!-- Soccer pitch -->
+  <a-plane rotation="-90 0 0" width="18" height="30"
+           color="#278b43"></a-plane>
 
-    <a-ring
-      position="0 0.04 0"
-      rotation="-90 0 0"
-      radius-inner="2.95"
-      radius-outer="3"
-      color="white"
-    ></a-ring>
+  <a-box position="0 0.015 0" width="0.06" height="0.025"
+         depth="26" color="white"></a-box>
+  <a-ring position="0 0.03 0" rotation="-90 0 0"
+          radius-inner="2.5" radius-outer="2.56"
+          color="white"></a-ring>
 
-    <!-- Field boundaries -->
-    <a-box position="-12 0.05 0"
-      width="0.08" height="0.08" depth="36"
-      color="white"></a-box>
-    <a-box position="12 0.05 0"
-      width="0.08" height="0.08" depth="36"
-      color="white"></a-box>
-    <a-box position="0 0.05 -18"
-      width="24" height="0.08" depth="0.08"
-      color="white"></a-box>
-    <a-box position="0 0.05 18"
-      width="24" height="0.08" depth="0.08"
-      color="white"></a-box>
+  <!-- Goal at the far end -->
+  <a-entity position="0 0 -13">
+    <a-box position="-2 1 0" width="0.12" height="2"
+           depth="0.12" color="white"></a-box>
+    <a-box position="2 1 0" width="0.12" height="2"
+           depth="0.12" color="white"></a-box>
+    <a-box position="0 2 0" width="4.1" height="0.12"
+           depth="0.12" color="white"></a-box>
+    <a-box position="0 1 -0.4" width="4" height="1.9"
+           depth="0.04" color="#dddddd"
+           material="wireframe: true"></a-box>
+  </a-entity>
 
-    <!-- GOALS -->
-    <a-entity position="0 0 -17.5">
-      <a-box position="-2 1 0" width="0.15"
-        height="2" depth="0.15" color="white"></a-box>
-      <a-box position="2 1 0" width="0.15"
-        height="2" depth="0.15" color="white"></a-box>
-      <a-box position="0 2 0" width="4"
-        height="0.15" depth="0.15" color="white"></a-box>
-      <a-box position="0 1 -0.8" width="4"
-        height="2" depth="0.03" color="#dddddd"
-        opacity="0.2"></a-box>
-    </a-entity>
+  <!-- Player and VR camera -->
+  <a-entity id="rig" position="0 0 5">
+    <a-camera id="camera" position="0 1.6 0"
+              wasd-controls-enabled="false"
+              look-controls="pointerLockEnabled: false">
+    </a-camera>
 
-    <a-entity position="0 0 17.5">
-      <a-box position="-2 1 0" width="0.15"
-        height="2" depth="0.15" color="white"></a-box>
-      <a-box position="2 1 0" width="0.15"
-        height="2" depth="0.15" color="white"></a-box>
-      <a-box position="0 2 0" width="4"
-        height="0.15" depth="0.15" color="white"></a-box>
-      <a-box position="0 1 0.8" width="4"
-        height="2" depth="0.03" color="#dddddd"
-        opacity="0.2"></a-box>
-    </a-entity>
-
-    <!-- PLAYER RIG: no hand models are attached -->
-    <a-entity id="player" position="0 0 8">
-      <a-entity
-        id="head"
-        camera
-        position="0 0 0"
-        look-controls
-      ></a-entity>
-    </a-entity>
-
-    <!-- TRACK CONTROLLERS WITHOUT RENDERING HAND MODELS -->
     <a-entity id="leftController"
-      tracked-controls="hand: left; autoHide: false">
+              hand-controls="hand: left; handModelStyle: lowPoly">
     </a-entity>
 
     <a-entity id="rightController"
-      tracked-controls="hand: right; autoHide: false">
+              hand-controls="hand: right; handModelStyle: lowPoly">
     </a-entity>
+  </a-entity>
 
-    <!-- BALL -->
-    <a-sphere id="ball"
-      position="0 0.22 0"
-      radius="0.22"
-      color="white"
-      material="roughness: 0.55"
-    ></a-sphere>
+  <!-- Legs: no knees or leg collision -->
+  <a-entity id="leftLeg">
+    <a-cylinder position="0 -0.27 0"
+                radius="0.105" height="0.55"
+                color="#254bba"></a-cylinder>
+    <a-box id="leftFoot" position="0 -0.55 -0.13"
+           width="0.22" height="0.12" depth="0.38"
+           color="#eeeeee"></a-box>
+  </a-entity>
 
-    <a-entity
-      position="0 0.22 0"
-      geometry="primitive: sphere; radius: 0.224"
-      material="color: black; wireframe: true; opacity: 0.15"
-      visible="false"
-    ></a-entity>
+  <a-entity id="rightLeg">
+    <a-cylinder position="0 -0.27 0"
+                radius="0.105" height="0.55"
+                color="#254bba"></a-cylinder>
+    <a-box id="rightFoot" position="0 -0.55 -0.13"
+           width="0.22" height="0.12" depth="0.38"
+           color="#eeeeee"></a-box>
+  </a-entity>
 
-    <!-- VIRTUAL FEET AND LEGS ARE CREATED BY JAVASCRIPT -->
-  </a-scene>
+  <!-- Soccer ball -->
+  <a-sphere id="soccerBall" position="0 0.22 0"
+            radius="0.22" color="white"
+            segments-width="24" segments-height="16">
+  </a-sphere>
 
-  <script>
-  AFRAME.registerComponent('ssvr-game', {
-    init: function () {
-      this.player = document.querySelector('#player');
-      this.head = document.querySelector('#head');
-      this.left = document.querySelector('#leftController');
-      this.right = document.querySelector('#rightController');
-      this.ball = document.querySelector('#ball');
-      this.status = document.querySelector('#status');
+  <a-entity id="game"
+    ssvr-game="rig: #rig; camera: #camera;
+    left: #leftController; right: #rightController;
+    leftLeg: #leftLeg; rightLeg: #rightLeg;
+    ball: #soccerBall">
+  </a-entity>
+</a-scene>
 
-      this.velocity = new THREE.Vector3();
-      this.ballVelocity = new THREE.Vector3();
-      this.lastTime = performance.now();
-      this.lastLeftKick = 0;
-      this.lastRightKick = 0;
-      this.lastLeft = new THREE.Vector3();
-      this.lastRight = new THREE.Vector3();
-      this.readyLeft = false;
-      this.readyRight = false;
-      this.jumpHeight = 0;
+<script>
+AFRAME.registerComponent("ssvr-game", {
+  schema: {
+    rig: {type: "selector"},
+    camera: {type: "selector"},
+    left: {type: "selector"},
+    right: {type: "selector"},
+    leftLeg: {type: "selector"},
+    rightLeg: {type: "selector"},
+    ball: {type: "selector"}
+  },
 
-      this.temp = new THREE.Vector3();
-      this.forward = new THREE.Vector3();
-      this.rightDir = new THREE.Vector3();
-      this.up = new THREE.Vector3(0, 1, 0);
-      this.direction = new THREE.Vector3();
+  init: function () {
+    this.previousFeet = {
+      left: new THREE.Vector3(),
+      right: new THREE.Vector3()
+    };
+    this.footReady = {left: false, right: false};
+    this.ballVelocity = new THREE.Vector3();
+    this.ballPosition = new THREE.Vector3(0, 0.22, 0);
+    this.temp = new THREE.Vector3();
+    this.forward = new THREE.Vector3();
+    this.rightward = new THREE.Vector3();
+    this.up = new THREE.Vector3(0, 1, 0);
+    this.kickCooldown = {left: 0, right: 0};
+    this.lastTime = 0;
+  },
 
-      this.legs = {};
-      this.makeLeg('left', this.left, -1);
-      this.makeLeg('right', this.right, 1);
+  tick: function (time, delta) {
+    if (!this.data.rig || !this.data.camera) return;
 
-      this.ballWorld = new THREE.Vector3();
-      this.footWorld = new THREE.Vector3();
+    const dt = Math.min(delta / 1000, 0.04);
+    if (dt <= 0) return;
 
-      this.onEnterVR = () => {
-        this.status.textContent =
-          'In VR: use the left stick to move.';
-      };
+    const d = this.data;
+    const scene = this.el.sceneEl;
+    const session = scene.renderer && scene.renderer.xr
+      ? scene.renderer.xr.getSession() : null;
 
-      this.el.addEventListener('enter-vr', this.onEnterVR);
-    },
+    // Move using the left thumbstick, independently of the legs.
+    if (session) {
+      for (const source of session.inputSources) {
+        if (!source.gamepad || source.handedness !== "left") continue;
 
-    makeLeg: function (side, controller, sideSign) {
-      const scene = this.el;
+        const axes = source.gamepad.axes;
+        if (!axes || axes.length < 2) continue;
 
-      const leg = document.createElement('a-cylinder');
-      leg.setAttribute('radius', '0.075');
-      leg.setAttribute('height', '1');
-      leg.setAttribute('color', '#e4b78c');
-      leg.setAttribute('material', 'roughness: 0.9');
-      leg.setAttribute('visible', 'false');
-      scene.appendChild(leg);
+        const x = Math.abs(axes[2] || 0) > 0.01
+          ? axes[2] : (axes[0] || 0);
+        const y = Math.abs(axes[3] || 0) > 0.01
+          ? axes[3] : (axes[1] || 0);
 
-      const shoe = document.createElement('a-box');
-      shoe.setAttribute('width', '0.19');
-      shoe.setAttribute('height', '0.12');
-      shoe.setAttribute('depth', '0.34');
-      shoe.setAttribute('color', '#20252c');
-      shoe.setAttribute('material', 'roughness: 0.65');
-      shoe.setAttribute('visible', 'false');
-      scene.appendChild(shoe);
+        const cameraWorld = new THREE.Vector3();
+        d.camera.object3D.getWorldDirection(cameraWorld);
+        cameraWorld.y = 0;
 
-      this.legs[side] = {
-        controller: controller,
-        leg: leg,
-        shoe: shoe,
-        sign: sideSign,
-        lastPosition: new THREE.Vector3(),
-        velocity: new THREE.Vector3(),
-        footPosition: new THREE.Vector3(),
-        initialized: false
-      };
-    },
+        if (cameraWorld.lengthSq() > 0) {
+          cameraWorld.normalize();
+          this.rightward.crossVectors(cameraWorld, this.up).normalize();
 
-    tick: function (time, delta) {
-      if (!this.left || !this.right || !this.head) return;
+          const move = new THREE.Vector3()
+            .addScaledVector(cameraWorld, -y)
+            .addScaledVector(this.rightward, x);
 
-      const dt = Math.min(delta / 1000, 0.05);
-      if (dt <= 0) return;
+          if (move.lengthSq() > 1) move.normalize();
 
-      this.readMovement(dt);
-      this.updateLeg(this.legs.left, dt, time);
-      this.updateLeg(this.legs.right, dt, time);
-      this.updateBall(dt);
-      this.checkGoals();
-    },
-
-    readMovement: function (dt) {
-      const camera = this.head.object3D;
-      const leftGamepad = this.getGamepad(this.left);
-      const rightGamepad = this.getGamepad(this.right);
-
-      // Camera-relative horizontal movement.
-      camera.getWorldDirection(this.forward);
-      this.forward.y = 0;
-
-      if (this.forward.lengthSq() > 0.001) {
-        this.forward.normalize();
-      } else {
-        this.forward.set(0, 0, -1);
-      }
-
-      this.rightDir.crossVectors(this.forward, this.up).normalize();
-
-      let x = 0, y = 0;
-
-      if (leftGamepad && leftGamepad.axes) {
-        const axes = leftGamepad.axes;
-        if (axes.length >= 4) {
-          x = axes[2] || 0;
-          y = axes[3] || 0;
-        } else {
-          x = axes[0] || 0;
-          y = axes[1] || 0;
+          // Standard speed: 3 metres per second.
+          d.rig.object3D.position.addScaledVector(move, 3 * dt);
         }
-      }
-
-      if (Math.abs(x) < 0.15) x = 0;
-      if (Math.abs(y) < 0.15) y = 0;
-
-      const movement = this.forward.clone().multiplyScalar(-y)
-        .add(this.rightDir.clone().multiplyScalar(x));
-
-      if (movement.lengthSq() > 1) movement.normalize();
-
-      // Locomotion is independent of foot positions.
-      this.player.object3D.position.addScaledVector(
-        movement, 3 * dt
-      );
-
-      // Right stick turns the player.
-      let rx = 0;
-      if (rightGamepad && rightGamepad.axes) {
-        const axes = rightGamepad.axes;
-        rx = axes.length >= 4 ? (axes[2] || 0) : (axes[0] || 0);
-      }
-
-      if (Math.abs(rx) > 0.2) {
-        this.player.object3D.rotation.y -= rx * 1.8 * dt;
-      }
-
-      this.player.object3D.position.x = THREE.MathUtils.clamp(
-        this.player.object3D.position.x, -11.3, 11.3
-      );
-      this.player.object3D.position.z = THREE.MathUtils.clamp(
-        this.player.object3D.position.z, -17.3, 17.3
-      );
-    },
-
-    getGamepad: function (entity) {
-      const tracked = entity.components['tracked-controls'];
-      if (!tracked || !tracked.controller) return null;
-      return tracked.controller;
-    },
-
-    updateLeg: function (item, dt, time) {
-      const controller = item.controller.object3D;
-
-      if (!controller.visible) return;
-
-      const controllerPosition = new THREE.Vector3();
-      controller.getWorldPosition(controllerPosition);
-
-      // Feet sit below the controller, which is held near the top
-      // of the virtual leg. The controller is not rendered.
-      const foot = controllerPosition.clone();
-      foot.y -= 0.65;
-
-      // Move the foot slightly forward in the player's facing direction.
-      this.forward.set(0, 0, -1);
-      this.forward.applyQuaternion(this.player.object3D.quaternion);
-      foot.addScaledVector(this.forward, 0.12);
-
-      if (!item.initialized) {
-        item.lastPosition.copy(foot);
-        item.footPosition.copy(foot);
-        item.initialized = true;
-      }
-
-      item.velocity.copy(foot).sub(item.lastPosition).divideScalar(dt);
-      item.lastPosition.copy(foot);
-
-      // Smooth foot tracking.
-      item.footPosition.lerp(foot, 1 - Math.exp(-25 * dt));
-
-      item.leg.setAttribute('visible', true);
-      item.shoe.setAttribute('visible', true);
-
-      // Hip follows the player, not the controller.
-      const hip = this.player.object3D.position.clone();
-      hip.y += 0.9;
-      hip.x += item.sign * 0.16;
-      hip.z -= 0.05;
-
-      const footPos = item.footPosition;
-      const vector = footPos.clone().sub(hip);
-      const length = Math.max(vector.length(), 0.1);
-
-      item.leg.object3D.position.copy(
-        hip.clone().add(footPos).multiplyScalar(0.5)
-      );
-      item.leg.object3D.scale.set(1, length, 1);
-      item.leg.object3D.quaternion.setFromUnitVectors(
-        this.up, vector.normalize()
-      );
-
-      item.shoe.object3D.position.copy(footPos);
-      item.shoe.object3D.position.y -= 0.015;
-
-      // Keep shoes roughly pointed in the player's forward direction.
-      item.shoe.object3D.rotation.set(0, this.player.object3D.rotation.y, 0);
-
-      this.kickBall(item, time);
-    },
-
-    kickBall: function (item, time) {
-      const foot = item.footPosition;
-      const ball = this.ball.object3D.position;
-      const distance = foot.distanceTo(ball);
-
-      // Only the shoe kicks the ball; legs have no collision.
-      if (distance > 0.48 || item.velocity.length() < 0.6) return;
-
-      if (time - (item.sign < 0 ? this.lastLeftKick : this.lastRightKick) < 220) {
-        return;
-      }
-
-      const kick = item.velocity.clone();
-      kick.clampLength(0, 15);
-
-      // Avoid kicks caused by slow tracking noise.
-      if (kick.length() < 0.6) return;
-
-      this.ballVelocity.addScaledVector(kick, 1.5);
-
-      // A small upward component makes the ball feel like a soccer ball.
-      this.ballVelocity.y += Math.min(kick.length() * 0.12, 1.5);
-
-      if (item.sign < 0) {
-        this.lastLeftKick = time;
-      } else {
-        this.lastRightKick = time;
-      }
-    },
-
-    updateBall: function (dt) {
-      const p = this.ball.object3D.position;
-
-      p.addScaledVector(this.ballVelocity, dt);
-
-      // Gravity and ground bounce.
-      this.ballVelocity.y -= 9.8 * dt;
-
-      if (p.y < 0.22) {
-        p.y = 0.22;
-        if (this.ballVelocity.y < 0) {
-          this.ballVelocity.y *= -0.48;
-        }
-        this.ballVelocity.x *= 0.985;
-        this.ballVelocity.z *= 0.985;
-      }
-
-      // Stop tiny movements.
-      if (this.ballVelocity.length() < 0.04 && p.y <= 0.23) {
-        this.ballVelocity.set(0, 0, 0);
-      }
-
-      // Side boundaries.
-      if (p.x < -11.7 || p.x > 11.7) {
-        p.x = THREE.MathUtils.clamp(p.x, -11.7, 11.7);
-        this.ballVelocity.x *= -0.65;
-      }
-
-      // End boundaries, except the goal opening.
-      if (Math.abs(p.z) > 17.7 && Math.abs(p.x) > 2.2) {
-        p.z = Math.sign(p.z) * 17.7;
-        this.ballVelocity.z *= -0.65;
-      }
-
-      // Basic friction.
-      this.ballVelocity.x *= Math.max(0, 1 - 0.12 * dt);
-      this.ballVelocity.z *= Math.max(0, 1 - 0.12 * dt);
-    },
-
-    checkGoals: function () {
-      const p = this.ball.object3D.position;
-
-      if (Math.abs(p.z) > 17.45 && Math.abs(p.x) < 2) {
-        this.status.textContent = 'GOAL! Resetting the ball...';
-        p.set(0, 0.22, 0);
-        this.ballVelocity.set(0, 0, 0);
       }
     }
-  });
-  </script>
+
+    this.updateLeg("left", d.left, d.leftLeg, dt);
+    this.updateLeg("right", d.right, d.rightLeg, dt);
+
+    // Simple ball physics: gravity, rolling friction and ground bounce.
+    this.ballPosition.addScaledVector(this.ballVelocity, dt);
+    this.ballVelocity.y -= 9.8 * dt;
+
+    if (this.ballPosition.y < 0.22) {
+      this.ballPosition.y = 0.22;
+      if (this.ballVelocity.y < -1) {
+        this.ballVelocity.y *= -0.35;
+      } else {
+        this.ballVelocity.y = 0;
+      }
+      this.ballVelocity.x *= Math.pow(0.985, dt * 60);
+      this.ballVelocity.z *= Math.pow(0.985, dt * 60);
+    }
+
+    // Keep the ball inside the pitch.
+    this.ballPosition.x = THREE.MathUtils.clamp(
+      this.ballPosition.x, -8.7, 8.7
+    );
+    this.ballPosition.z = THREE.MathUtils.clamp(
+      this.ballPosition.z, -14.5, 14.5
+    );
+
+    d.ball.object3D.position.copy(this.ballPosition);
+    d.ball.object3D.rotation.x += this.ballVelocity.z * dt * 2;
+    d.ball.object3D.rotation.z -= this.ballVelocity.x * dt * 2;
+  },
+
+  updateLeg: function (side, controller, leg, dt) {
+    if (!controller || !leg) return;
+
+    const controllerObject = controller.object3D;
+
+    // Only follow a controller once WebXR has given it a valid pose.
+    if (!controllerObject.visible) return;
+
+    const position = new THREE.Vector3();
+    const rotation = new THREE.Quaternion();
+    controllerObject.getWorldPosition(position);
+    controllerObject.getWorldQuaternion(rotation);
+
+    // Controller sits near the top of the leg.
+    leg.object3D.position.copy(position);
+    leg.object3D.quaternion.copy(rotation);
+
+    // Work out the actual foot position and its movement speed.
+    const footOffset = new THREE.Vector3(0, -0.55, -0.13)
+      .applyQuaternion(rotation);
+    const footPosition = position.clone().add(footOffset);
+
+    if (!this.footReady[side]) {
+      this.previousFeet[side].copy(footPosition);
+      this.footReady[side] = true;
+      return;
+    }
+
+    const footVelocity = footPosition.clone()
+      .sub(this.previousFeet[side])
+      .divideScalar(dt);
+    this.previousFeet[side].copy(footPosition);
+
+    this.kickCooldown[side] = Math.max(
+      0, this.kickCooldown[side] - dt
+    );
+
+    const ballDistance = footPosition.distanceTo(this.ballPosition);
+    const speed = footVelocity.length();
+
+    // A moving foot close to the ball produces a kick.
+    if (ballDistance < 0.38 &&
+        speed > 1.0 &&
+        this.kickCooldown[side] <= 0) {
+
+      const direction = footVelocity.normalize();
+      const power = Math.min(speed * 1.8, 13);
+
+      this.ballVelocity.x += direction.x * power;
+      this.ballVelocity.y += Math.max(
+        0.7, direction.y * power + 0.8
+      );
+      this.ballVelocity.z += direction.z * power;
+
+      this.kickCooldown[side] = 0.18;
+    }
+  }
+});
+</script>
 </body>
 </html>
