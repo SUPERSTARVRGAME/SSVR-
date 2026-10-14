@@ -3,550 +3,440 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#153e2b">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
   <title>SSVR - VR Soccer</title>
 
   <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
 
   <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: Arial, sans-serif; }
-
-    #help {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 10;
-      color: white;
-      background: #102b22e8;
-      padding: 12px;
-      border-radius: 10px;
-      max-width: 290px;
-      font-size: 14px;
-      line-height: 1.5;
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
     }
 
-    #status {
-      color: #b8f5c9;
-      margin-top: 5px;
+    #instructions {
+      position: fixed;
+      z-index: 10;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      padding: 12px;
+      color: white;
+      background: rgba(0, 0, 0, 0.75);
+      border-radius: 10px;
+      text-align: center;
+      font-size: 14px;
+      pointer-events: none;
     }
   </style>
 </head>
 
 <body>
-  <div id="help">
-    <b>SSVR — Soccer</b><br>
-    Enter VR to play.<br>
-    Left thumbstick: move.<br>
-    Move your feet into the ball to kick.<br>
-    <div id="status">Waiting for VR...</div>
+  <div id="instructions">
+    <b>SSVR — VR Soccer</b><br>
+    Put on your Quest headset and enter VR.
+    Move with the thumbstick. Move your controllers
+    to control your virtual legs and kick the ball.
   </div>
 
   <a-scene
-    id="scene"
-    background="color: #87ceeb"
-    renderer="antialias: true; colorManagement: true"
+    background="color: #87CEEB"
+    renderer="antialias: true"
     vr-mode-ui="enabled: true">
 
-    <!-- Lighting -->
-    <a-entity light="type: ambient; intensity: 0.85"></a-entity>
-    <a-entity
-      light="type: directional; intensity: 1"
-      position="-4 9 5">
-    </a-entity>
+    <a-assets>
+      <a-mixin id="whiteLine"
+        material="color: white; roughness: 0.8">
+      </a-mixin>
+    </a-assets>
 
-    <!-- Stadium surroundings -->
-    <a-sky color="#87ceeb"></a-sky>
+    <!-- LIGHTING -->
+    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+    <a-entity light="type: directional; intensity: 1.1"
+              position="-4 8 3"></a-entity>
 
-    <!-- Grass pitch -->
-    <a-plane
-      rotation="-90 0 0"
-      width="18"
-      height="30"
-      color="#278b43">
-    </a-plane>
+    <!-- PLAYER RIG -->
+    <a-entity id="playerRig"
+              position="0 0 5"
+              stick-move>
 
-    <!-- Pitch markings -->
-    <a-box
-      position="0 0.015 0"
-      width="0.055"
-      height="0.025"
-      depth="26"
-      color="white">
-    </a-box>
-
-    <a-ring
-      position="0 0.025 0"
-      rotation="-90 0 0"
-      radius-inner="2.45"
-      radius-outer="2.51"
-      color="white">
-    </a-ring>
-
-    <!-- Near penalty area -->
-    <a-box position="0 0.02 10.7"
-      width="8" height="0.025" depth="4"
-      color="white" wireframe="true">
-    </a-box>
-
-    <!-- Far penalty area -->
-    <a-box position="0 0.02 -10.7"
-      width="8" height="0.025" depth="4"
-      color="white" wireframe="true">
-    </a-box>
-
-    <!-- Goal at far end -->
-    <a-entity position="0 0 -13">
-      <a-box position="-2 1 0"
-        width="0.12" height="2" depth="0.12"
-        color="white"></a-box>
-
-      <a-box position="2 1 0"
-        width="0.12" height="2" depth="0.12"
-        color="white"></a-box>
-
-      <a-box position="0 2 0"
-        width="4.1" height="0.12" depth="0.12"
-        color="white"></a-box>
-
-      <!-- Simple net -->
-      <a-box position="0 1 -0.45"
-        width="4" height="1.9" depth="0.04"
-        color="#eeeeee"
-        material="wireframe: true">
-      </a-box>
-    </a-entity>
-
-    <!-- Player rig -->
-    <a-entity id="rig" position="0 0 5">
-
-      <a-camera
-        id="camera"
-        position="0 1.6 0"
-        wasd-controls-enabled="false"
-        look-controls="pointerLockEnabled: false">
+      <a-camera id="camera"
+                position="0 1.65 0"
+                look-controls="enabled: true">
       </a-camera>
 
-      <!-- Quest controllers -->
-      <a-entity
-        id="leftController"
-        hand-controls="hand: left; handModelStyle: lowPoly">
+      <!-- LEFT CONTROLLER -->
+      <a-entity id="leftController"
+                tracked-controls="hand: left">
       </a-entity>
 
-      <a-entity
-        id="rightController"
-        hand-controls="hand: right; handModelStyle: lowPoly">
+      <!-- RIGHT CONTROLLER -->
+      <a-entity id="rightController"
+                tracked-controls="hand: right">
+      </a-entity>
+
+      <!-- LEFT VIRTUAL LEG AND FOOT -->
+      <a-entity id="leftLeg"
+                leg-follow="controller: #leftController;
+                            side: left">
+      </a-entity>
+
+      <!-- RIGHT VIRTUAL LEG AND FOOT -->
+      <a-entity id="rightLeg"
+                leg-follow="controller: #rightController;
+                            side: right">
       </a-entity>
 
     </a-entity>
 
-    <!-- LEFT LEG -->
-    <a-entity id="leftLeg">
-      <a-cylinder
-        position="0 -0.27 0"
-        radius="0.105"
-        height="0.55"
-        color="#254bba">
-      </a-cylinder>
+    <!-- SOCCER FIELD -->
+    <a-plane position="0 0 0"
+             rotation="-90 0 0"
+             width="14"
+             height="24"
+             color="#278B37"
+             material="roughness: 1">
+    </a-plane>
 
-      <!-- Boot sole -->
-      <a-box
-        position="0 -0.595 -0.115"
-        width="0.205"
-        height="0.045"
-        depth="0.37"
-        color="#20242b">
-      </a-box>
+    <!-- FIELD BOUNDARIES -->
+    <a-box position="0 0.015 -12"
+           width="14" height="0.03" depth="0.08"
+           color="white"></a-box>
 
-      <!-- Rounded boot upper -->
-      <a-sphere
-        position="0 -0.535 -0.165"
-        scale="0.082 0.058 0.132"
-        color="#eeeeee">
-      </a-sphere>
+    <a-box position="0 0.015 12"
+           width="14" height="0.03" depth="0.08"
+           color="white"></a-box>
 
-      <!-- Heel -->
-      <a-box
-        position="0 -0.54 -0.005"
-        width="0.15"
-        height="0.09"
-        depth="0.12"
-        color="#d5d9df">
-      </a-box>
+    <a-box position="-7 0.015 0"
+           width="0.08" height="0.03" depth="24"
+           color="white"></a-box>
 
-      <!-- Tongue -->
-      <a-box
-        position="0 -0.473 -0.135"
-        width="0.055"
-        height="0.012"
-        depth="0.105"
-        color="#333b4a">
-      </a-box>
+    <a-box position="7 0.015 0"
+           width="0.08" height="0.03" depth="24"
+           color="white"></a-box>
 
-      <!-- Laces -->
-      <a-box
-        position="0 -0.469 -0.165"
-        width="0.07"
-        height="0.009"
-        depth="0.012"
-        color="white">
-      </a-box>
+    <!-- CENTER LINE -->
+    <a-box position="0 0.02 0"
+           width="14" height="0.025" depth="0.06"
+           color="white"></a-box>
 
-      <a-box
-        position="0 -0.469 -0.125"
-        width="0.07"
-        height="0.009"
-        depth="0.012"
-        color="white">
+    <!-- CENTER CIRCLE -->
+    <a-torus position="0 0.025 0"
+             rotation="-90 0 0"
+             radius="2"
+             radius-tubular="0.035"
+             color="white">
+    </a-torus>
+
+    <!-- GOALS -->
+    <a-entity position="0 0 -11.6">
+      <a-box position="-2 1 0"
+             width="0.12" height="2" depth="0.12"
+             color="white"></a-box>
+      <a-box position="2 1 0"
+             width="0.12" height="2" depth="0.12"
+             color="white"></a-box>
+      <a-box position="0 2 0"
+             width="4" height="0.12" depth="0.12"
+             color="white"></a-box>
+      <a-box position="0 1 -0.8"
+             width="4" height="2" depth="0.04"
+             color="#DDDDDD"
+             material="wireframe: true">
       </a-box>
     </a-entity>
 
-    <!-- RIGHT LEG -->
-    <a-entity id="rightLeg">
-      <a-cylinder
-        position="0 -0.27 0"
-        radius="0.105"
-        height="0.55"
-        color="#254bba">
-      </a-cylinder>
-
-      <!-- Boot sole -->
-      <a-box
-        position="0 -0.595 -0.115"
-        width="0.205"
-        height="0.045"
-        depth="0.37"
-        color="#20242b">
-      </a-box>
-
-      <!-- Rounded boot upper -->
-      <a-sphere
-        position="0 -0.535 -0.165"
-        scale="0.082 0.058 0.132"
-        color="#eeeeee">
-      </a-sphere>
-
-      <!-- Heel -->
-      <a-box
-        position="0 -0.54 -0.005"
-        width="0.15"
-        height="0.09"
-        depth="0.12"
-        color="#d5d9df">
-      </a-box>
-
-      <!-- Tongue -->
-      <a-box
-        position="0 -0.473 -0.135"
-        width="0.055"
-        height="0.012"
-        depth="0.105"
-        color="#333b4a">
-      </a-box>
-
-      <!-- Laces -->
-      <a-box
-        position="0 -0.469 -0.165"
-        width="0.07"
-        height="0.009"
-        depth="0.012"
-        color="white">
-      </a-box>
-
-      <a-box
-        position="0 -0.469 -0.125"
-        width="0.07"
-        height="0.009"
-        depth="0.012"
-        color="white">
+    <a-entity position="0 0 11.6" rotation="0 180 0">
+      <a-box position="-2 1 0"
+             width="0.12" height="2" depth="0.12"
+             color="white"></a-box>
+      <a-box position="2 1 0"
+             width="0.12" height="2" depth="0.12"
+             color="white"></a-box>
+      <a-box position="0 2 0"
+             width="4" height="0.12" depth="0.12"
+             color="white"></a-box>
+      <a-box position="0 1 -0.8"
+             width="4" height="2" depth="0.04"
+             color="#DDDDDD"
+             material="wireframe: true">
       </a-box>
     </a-entity>
 
-    <!-- Soccer ball -->
-    <a-entity
-      id="soccerBall"
-      position="0 0.22 0">
-
-      <a-sphere
-        radius="0.22"
-        color="white"
-        segments-width="24"
-        segments-height="16">
+    <!-- SOCCER BALL -->
+    <a-sphere id="ball"
+              position="0 0.22 0"
+              radius="0.22"
+              color="white"
+              material="roughness: 0.65"
+              ball-physics>
+      <a-sphere radius="0.222"
+                scale="1 1 1"
+                color="#222222"
+                material="wireframe: true">
       </a-sphere>
+    </a-sphere>
 
-      <!-- Dark panels -->
-      <a-sphere
-        radius="0.223"
-        color="#20242b"
-        material="wireframe: true">
-      </a-sphere>
-    </a-entity>
+    <!-- GAME CODE -->
+    <script>
+      AFRAME.registerComponent("leg-follow", {
+        schema: {
+          controller: { type: "selector" },
+          side: { type: "string", default: "left" }
+        },
 
-    <!-- Game controller -->
-    <a-entity
-      id="game"
-      ssvr-game="
-        rig: #rig;
-        camera: #camera;
-        left: #leftController;
-        right: #rightController;
-        leftLeg: #leftLeg;
-        rightLeg: #rightLeg;
-        ball: #soccerBall">
-    </a-entity>
+        init: function () {
+          this.previous = new THREE.Vector3();
+          this.current = new THREE.Vector3();
+          this.velocity = new THREE.Vector3();
+          this.ready = false;
 
+          const side = this.data.side;
+          const color = side === "left" ? "#246BFD" : "#F04444";
+
+          // Leg segment: no knee joint.
+          const leg = document.createElement("a-cylinder");
+          leg.setAttribute("radius", "0.075");
+          leg.setAttribute("height", "0.7");
+          leg.setAttribute("color", color);
+          leg.setAttribute("position", "0 0.35 0");
+          leg.setAttribute("material", "roughness: 0.8");
+          this.el.appendChild(leg);
+
+          // Foot: the only part intended to kick the ball.
+          const foot = document.createElement("a-box");
+          foot.setAttribute("width", "0.2");
+          foot.setAttribute("height", "0.12");
+          foot.setAttribute("depth", "0.34");
+          foot.setAttribute("color", "#202020");
+          foot.setAttribute("position", "0 0 0.08");
+          foot.setAttribute("material", "roughness: 0.6");
+          this.el.appendChild(foot);
+
+          this.foot = foot;
+
+          // Trigger can also kick when the foot is near the ball.
+          if (this.data.controller) {
+            this.data.controller.addEventListener(
+              "triggerdown",
+              () => this.kickBall(1)
+            );
+          }
+        },
+
+        tick: function (time, delta) {
+          const controller = this.data.controller;
+
+          if (!controller || !controller.object3D) return;
+
+          if (!controller.object3D.visible) return;
+
+          controller.object3D.getWorldPosition(this.current);
+
+          // The controller is at the top of the virtual leg.
+          // The leg and foot extend down from that position.
+          const target = this.current.clone();
+          target.y -= 0.75;
+
+          const parent = this.el.parentEl;
+          if (parent && parent.object3D) {
+            parent.object3D.worldToLocal(target);
+          }
+
+          this.el.object3D.position.copy(target);
+
+          if (delta > 0 && delta < 100) {
+            if (this.ready) {
+              const worldNow = this.current.clone();
+              this.velocity.subVectors(
+                worldNow, this.previous
+              ).multiplyScalar(1000 / delta);
+            }
+
+            this.previous.copy(this.current);
+            this.ready = true;
+          }
+
+          // Automatic contact kicking, based on foot movement.
+          const ball = document.querySelector("#ball");
+          if (!ball || !this.ready) return;
+
+          const footWorld = new THREE.Vector3();
+          this.foot.object3D.getWorldPosition(footWorld);
+
+          const ballWorld = new THREE.Vector3();
+          ball.object3D.getWorldPosition(ballWorld);
+
+          const distance = footWorld.distanceTo(ballWorld);
+
+          if (distance < 0.36 && this.velocity.length() > 0.8) {
+            this.kickBall(Math.min(this.velocity.length(), 8));
+          }
+        },
+
+        kickBall: function (power) {
+          const ball = document.querySelector("#ball");
+          if (!ball) return;
+
+          const footWorld = new THREE.Vector3();
+          this.foot.object3D.getWorldPosition(footWorld);
+
+          const ballWorld = new THREE.Vector3();
+          ball.object3D.getWorldPosition(ballWorld);
+
+          if (footWorld.distanceTo(ballWorld) > 0.65) return;
+
+          const direction = new THREE.Vector3()
+            .subVectors(ballWorld, footWorld);
+
+          direction.y = Math.max(0.12, direction.y);
+
+          if (direction.lengthSq() < 0.001) {
+            direction.set(0, 0.2, -1);
+          }
+
+          direction.normalize();
+
+          ball.components["ball-physics"].kick(
+            direction,
+            3 + power * 0.65
+          );
+        }
+      });
+
+      // Thumbstick movement independent of virtual legs.
+      AFRAME.registerComponent("stick-move", {
+        schema: {
+          speed: { type: "number", default: 3 }
+        },
+
+        init: function () {
+          this.direction = new THREE.Vector3();
+          this.forward = new THREE.Vector3();
+          this.right = new THREE.Vector3();
+          this.deadZone = 0.18;
+        },
+
+        tick: function (time, delta) {
+          if (!this.el.sceneEl.is("vr-mode")) return;
+
+          const scene = this.el.sceneEl;
+          const session = scene.renderer.xr.getSession();
+
+          if (!session) return;
+
+          let x = 0;
+          let y = 0;
+
+          for (const source of session.inputSources) {
+            if (!source.gamepad) continue;
+
+            const axes = source.gamepad.axes;
+            if (!axes || axes.length < 2) continue;
+
+            // Prefer the left-hand thumbstick for locomotion.
+            if (source.handedness === "left") {
+              x = axes[2] !== undefined ? axes[2] : axes[0];
+              y = axes[3] !== undefined ? axes[3] : axes[1];
+              break;
+            }
+          }
+
+          if (Math.abs(x) < this.deadZone) x = 0;
+          if (Math.abs(y) < this.deadZone) y = 0;
+
+          const camera = document.querySelector("#camera");
+          if (!camera) return;
+
+          camera.object3D.getWorldDirection(this.forward);
+          this.forward.y = 0;
+          this.forward.normalize();
+
+          this.right.crossVectors(
+            this.forward,
+            new THREE.Vector3(0, 1, 0)
+          ).normalize();
+
+          this.direction.set(0, 0, 0);
+          this.direction.addScaledVector(this.forward, -y);
+          this.direction.addScaledVector(this.right, x);
+
+          if (this.direction.lengthSq() > 1) {
+            this.direction.normalize();
+          }
+
+          const seconds = Math.min(delta, 50) / 1000;
+          const movement = this.direction.multiplyScalar(
+            this.data.speed * seconds
+          );
+
+          this.el.object3D.position.x += movement.x;
+          this.el.object3D.position.z += movement.z;
+
+          // Keep the player inside the field.
+          this.el.object3D.position.x = THREE.MathUtils.clamp(
+            this.el.object3D.position.x, -6.5, 6.5
+          );
+
+          this.el.object3D.position.z = THREE.MathUtils.clamp(
+            this.el.object3D.position.z, -11, 11
+          );
+        }
+      });
+
+      // Simple ball movement and ground bounce.
+      AFRAME.registerComponent("ball-physics", {
+        init: function () {
+          this.velocity = new THREE.Vector3();
+          this.lastKick = 0;
+        },
+
+        kick: function (direction, power) {
+          const now = performance.now();
+
+          if (now - this.lastKick < 180) return;
+          this.lastKick = now;
+
+          this.velocity.addScaledVector(direction, power);
+          this.velocity.y = Math.max(
+            this.velocity.y, power * 0.22
+          );
+        },
+
+        tick: function (time, delta) {
+          const dt = Math.min(delta, 40) / 1000;
+          const pos = this.el.object3D.position;
+
+          pos.addScaledVector(this.velocity, dt);
+
+          this.velocity.y -= 9.8 * dt;
+
+          if (pos.y < 0.22) {
+            pos.y = 0.22;
+            if (this.velocity.y < 0) {
+              this.velocity.y *= -0.38;
+            }
+          }
+
+          // Rolling friction.
+          this.velocity.x *= Math.pow(0.985, dt * 60);
+          this.velocity.z *= Math.pow(0.985, dt * 60);
+
+          if (Math.abs(this.velocity.y) < 0.08 && pos.y <= 0.23) {
+            this.velocity.y = 0;
+          }
+
+          if (this.velocity.length() < 0.025) {
+            this.velocity.set(0, 0, 0);
+          }
+
+          // Keep the ball in the playing area.
+          pos.x = THREE.MathUtils.clamp(pos.x, -6.7, 6.7);
+          pos.z = THREE.MathUtils.clamp(pos.z, -11.7, 11.7);
+        }
+      });
+    </script>
   </a-scene>
-
-<script>
-AFRAME.registerComponent("ssvr-game", {
-  schema: {
-    rig: { type: "selector" },
-    camera: { type: "selector" },
-    left: { type: "selector" },
-    right: { type: "selector" },
-    leftLeg: { type: "selector" },
-    rightLeg: { type: "selector" },
-    ball: { type: "selector" }
-  },
-
-  init: function () {
-    this.previousFeet = {
-      left: new THREE.Vector3(),
-      right: new THREE.Vector3()
-    };
-
-    this.footReady = { left: false, right: false };
-    this.kickCooldown = { left: 0, right: 0 };
-
-    this.ballPosition = new THREE.Vector3(0, 0.22, 0);
-    this.ballVelocity = new THREE.Vector3();
-
-    this.up = new THREE.Vector3(0, 1, 0);
-    this.cameraDirection = new THREE.Vector3();
-    this.rightward = new THREE.Vector3();
-
-    this.status = document.querySelector("#status");
-
-    this.el.sceneEl.addEventListener("enter-vr", () => {
-      if (this.status) this.status.textContent = "VR active";
-    });
-
-    this.el.sceneEl.addEventListener("exit-vr", () => {
-      if (this.status) this.status.textContent = "VR exited";
-    });
-  },
-
-  tick: function (time, delta) {
-    const d = this.data;
-    const dt = Math.min(delta / 1000, 0.04);
-
-    if (!dt || !d.rig || !d.camera || !d.ball) return;
-
-    this.movePlayer(dt);
-    this.updateLeg("left", d.left, d.leftLeg, dt);
-    this.updateLeg("right", d.right, d.rightLeg, dt);
-    this.updateBall(dt);
-  },
-
-  movePlayer: function (dt) {
-    const d = this.data;
-    const scene = this.el.sceneEl;
-
-    if (!scene.is("vr-mode")) return;
-
-    const renderer = scene.renderer;
-    const session = renderer && renderer.xr
-      ? renderer.xr.getSession()
-      : null;
-
-    if (!session) return;
-
-    let axisX = 0;
-    let axisY = 0;
-
-    for (const source of session.inputSources) {
-      if (
-        source.handedness !== "left" ||
-        !source.gamepad
-      ) continue;
-
-      const axes = source.gamepad.axes;
-
-      if (!axes || axes.length < 2) continue;
-
-      // Quest controllers commonly expose thumbstick axes
-      // at indices 2 and 3, with 0 and 1 as a fallback.
-      axisX = Math.abs(axes[2] || 0) > 0.01
-        ? axes[2]
-        : (axes[0] || 0);
-
-      axisY = Math.abs(axes[3] || 0) > 0.01
-        ? axes[3]
-        : (axes[1] || 0);
-
-      break;
-    }
-
-    if (Math.abs(axisX) < 0.12) axisX = 0;
-    if (Math.abs(axisY) < 0.12) axisY = 0;
-
-    // Camera forward direction, flattened to the ground.
-    d.camera.object3D.getWorldDirection(this.cameraDirection);
-    this.cameraDirection.y = 0;
-
-    if (this.cameraDirection.lengthSq() < 0.001) return;
-
-    this.cameraDirection.normalize();
-
-    // Camera right direction.
-    this.rightward.crossVectors(
-      this.cameraDirection,
-      this.up
-    ).normalize();
-
-    // Standard WebXR forward is -Z.
-    // Positive thumbstick Y should move forward.
-    const movement = new THREE.Vector3()
-      .addScaledVector(this.cameraDirection, -axisY)
-      .addScaledVector(this.rightward, axisX);
-
-    if (movement.lengthSq() > 1) movement.normalize();
-
-    // Corrected movement directions:
-    // forward = negative world Z when facing -Z
-    // backward = positive world Z
-    // left/right follow the direction the camera faces.
-    d.rig.object3D.position.addScaledVector(
-      movement,
-      3 * dt
-    );
-  },
-
-  updateLeg: function (side, controller, leg, dt) {
-    if (!controller || !leg) return;
-
-    const controllerObject = controller.object3D;
-
-    // Ignore the controller until WebXR reports a valid pose.
-    if (!controllerObject.visible) return;
-
-    const position = new THREE.Vector3();
-    const rotation = new THREE.Quaternion();
-
-    controllerObject.getWorldPosition(position);
-    controllerObject.getWorldQuaternion(rotation);
-
-    // The controller is near the top of the virtual leg.
-    // The boot extends downward and slightly forward.
-    leg.object3D.position.copy(position);
-    leg.object3D.quaternion.copy(rotation);
-
-    const footOffset = new THREE.Vector3(0, -0.55, -0.13)
-      .applyQuaternion(rotation);
-
-    const footPosition = position.clone().add(footOffset);
-
-    if (!this.footReady[side]) {
-      this.previousFeet[side].copy(footPosition);
-      this.footReady[side] = true;
-      return;
-    }
-
-    const footVelocity = footPosition.clone()
-      .sub(this.previousFeet[side])
-      .divideScalar(dt);
-
-    this.previousFeet[side].copy(footPosition);
-
-    this.kickCooldown[side] = Math.max(
-      0,
-      this.kickCooldown[side] - dt
-    );
-
-    const ballDistance = footPosition.distanceTo(
-      this.ballPosition
-    );
-
-    const speed = footVelocity.length();
-
-    // Only a fast-moving foot close to the ball can kick.
-    if (
-      ballDistance < 0.38 &&
-      speed > 1.0 &&
-      this.kickCooldown[side] <= 0
-    ) {
-      const direction = footVelocity.normalize();
-      const power = Math.min(speed * 1.8, 13);
-
-      this.ballVelocity.x += direction.x * power;
-      this.ballVelocity.y += Math.max(
-        0.7,
-        direction.y * power + 0.8
-      );
-      this.ballVelocity.z += direction.z * power;
-
-      this.kickCooldown[side] = 0.18;
-    }
-  },
-
-  updateBall: function (dt) {
-    // Gravity and basic movement.
-    this.ballPosition.addScaledVector(
-      this.ballVelocity,
-      dt
-    );
-
-    this.ballVelocity.y -= 9.8 * dt;
-
-    // Ground collision.
-    if (this.ballPosition.y < 0.22) {
-      this.ballPosition.y = 0.22;
-
-      if (this.ballVelocity.y < -1) {
-        this.ballVelocity.y *= -0.35;
-      } else {
-        this.ballVelocity.y = 0;
-      }
-
-      this.ballVelocity.x *= Math.pow(0.985, dt * 60);
-      this.ballVelocity.z *= Math.pow(0.985, dt * 60);
-    }
-
-    // Pitch boundaries.
-    if (this.ballPosition.x < -8.7) {
-      this.ballPosition.x = -8.7;
-      this.ballVelocity.x *= -0.6;
-    }
-
-    if (this.ballPosition.x > 8.7) {
-      this.ballPosition.x = 8.7;
-      this.ballVelocity.x *= -0.6;
-    }
-
-    if (this.ballPosition.z < -14.5) {
-      this.ballPosition.z = -14.5;
-      this.ballVelocity.z *= -0.6;
-    }
-
-    if (this.ballPosition.z > 14.5) {
-      this.ballPosition.z = 14.5;
-      this.ballVelocity.z *= -0.6;
-    }
-
-    // Apply position to the visible ball.
-    this.data.ball.object3D.position.copy(
-      this.ballPosition
-    );
-
-    // Visual rolling.
-    this.data.ball.object3D.rotation.x +=
-      this.ballVelocity.z * dt * 2;
-
-    this.data.ball.object3D.rotation.z -=
-      this.ballVelocity.x * dt * 2;
-  }
-});
-</script>
 </body>
 </html>
